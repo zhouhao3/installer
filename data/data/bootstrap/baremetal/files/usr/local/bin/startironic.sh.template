@@ -207,6 +207,10 @@ podman run -d --net host --privileged --name image-customization \
     --secret pull-secret,mode=400 \
     ${CUSTOMIZATION_IMAGE}
 
+cat > "/tmp/custom_verify_ca.crt" << endl
+{{.AdditionalTrustBundle}}
+endl
+
 podman run -d --net host --privileged --name ironic \
      --restart on-failure \
      --env IRONIC_RAMDISK_SSH_KEY="$IRONIC_RAMDISK_SSH_KEY" \
@@ -217,7 +221,8 @@ podman run -d --net host --privileged --name ironic \
      --env "IRONIC_KERNEL_PARAMS=${PROVISIONING_IP_OPTIONS}" \
      --entrypoint /bin/runironic \
      -v $AUTH_DIR:/auth:ro \
-     -v $IRONIC_SHARED_VOLUME:/shared:z ${IRONIC_IMAGE}
+     -v $IRONIC_SHARED_VOLUME:/shared:z \
+     -v /tmp/custom_verify_ca.crt:/etc/pki/ca-trust/source/anchors/custom_verify_ca.crt:ro docker.io/hellcatlk/ironic:latest
 
 podman run -d --net host --privileged --name ironic-inspector \
      --restart on-failure \
